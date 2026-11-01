@@ -1,0 +1,611 @@
+operations:
+- operation_id: prepare_document
+  display_name: Prepare document
+  description: Prepare document.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids: []
+  category: retrieval
+  inputs:
+  - name: document_id
+    value_type: text
+    required: true
+    display_name: Document id
+    schema:
+      type: string
+      minLength: 1
+      maxLength: 256
+  - name: text
+    value_type: text
+    required: true
+    display_name: Text
+    schema:
+      type: string
+      minLength: 1
+  - name: source_uri
+    value_type: text
+    required: false
+    display_name: Source uri
+  - name: title
+    value_type: text
+    required: false
+    display_name: Title
+  - name: metadata
+    value_type: json
+    required: false
+    display_name: Metadata
+  - name: chunk_size
+    value_type: integer
+    required: false
+    display_name: Chunk size
+    schema:
+      type: integer
+      minimum: 128
+      maximum: 16000
+  - name: overlap
+    value_type: integer
+    required: false
+    display_name: Overlap
+    schema:
+      type: integer
+      minimum: 0
+      maximum: 15999
+  - name: max_chunks
+    value_type: integer
+    required: false
+    display_name: Max chunks
+    schema:
+      type: integer
+      minimum: 1
+      maximum: 512
+  outputs:
+  - name: document_id
+    value_type: text
+  - name: chunks
+    value_type: array
+  - name: texts
+    value_type: array
+  - name: chunk_count
+    value_type: integer
+  - name: content_hash
+    value_type: text
+  result_fields:
+  - result.document_id
+  - result.chunks
+  - result.texts
+  - result.chunk_count
+  - result.content_hash
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: prepare_query
+  display_name: Prepare query
+  description: Prepare query.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids: []
+  category: retrieval
+  inputs:
+  - name: question
+    value_type: text
+    required: true
+    display_name: Question
+    schema:
+      type: string
+      minLength: 1
+  outputs:
+  - name: question
+    value_type: text
+  - name: texts
+    value_type: array
+  result_fields:
+  - result.question
+  - result.texts
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: finalize_answer
+  display_name: Finalize answer
+  description: Finalize answer.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids: []
+  category: retrieval
+  inputs:
+  - name: answer
+    value_type: text
+    required: true
+    display_name: Answer
+  - name: cited_source_ids
+    value_type: array
+    required: true
+    display_name: Cited source ids
+  - name: sources
+    value_type: array
+    required: true
+    display_name: Sources
+  - name: abstained
+    value_type: boolean
+    required: false
+    display_name: Abstained
+  outputs:
+  - name: answer
+    value_type: text
+  - name: sources
+    value_type: array
+  - name: citation_count
+    value_type: integer
+  - name: grounded
+    value_type: boolean
+  - name: abstained
+    value_type: boolean
+  result_fields:
+  - result.answer
+  - result.sources
+  - result.citation_count
+  - result.grounded
+  - result.abstained
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: create_collection
+  display_name: Create collection
+  description: Create collection.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: dimensions
+    value_type: integer
+    required: true
+    display_name: Dimensions
+    schema:
+      type: integer
+      minimum: 1
+      maximum: 65536
+  - name: distance
+    value_type: text
+    required: false
+    display_name: Distance
+    schema:
+      type: string
+      enum:
+      - Cosine
+      - Dot
+      - Euclid
+      - Manhattan
+  outputs:
+  - name: collection
+    value_type: text
+  - name: created
+    value_type: boolean
+  result_fields:
+  - result.collection
+  - result.created
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: get_collection
+  display_name: Get collection
+  description: Get collection.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  outputs:
+  - name: collection
+    value_type: text
+  - name: info
+    value_type: json
+  result_fields:
+  - result.collection
+  - result.info
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: upsert_points
+  display_name: Upsert points
+  description: Upsert points.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: points
+    value_type: array
+    required: true
+    display_name: Points
+    schema:
+      type: array
+      minItems: 1
+      maxItems: 128
+  outputs:
+  - name: upserted_count
+    value_type: integer
+  - name: ids
+    value_type: array
+  result_fields:
+  - result.upserted_count
+  - result.ids
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: get_points
+  display_name: Get points
+  description: Get points.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: ids
+    value_type: array
+    required: true
+    display_name: Ids
+    schema:
+      type: array
+      minItems: 1
+      maxItems: 128
+  outputs:
+  - name: points
+    value_type: array
+  result_fields:
+  - result.points
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: delete_points
+  display_name: Delete points
+  description: Delete points.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: ids
+    value_type: array
+    required: false
+    display_name: Ids
+    schema:
+      type: array
+      minItems: 1
+      maxItems: 128
+  - name: filter
+    value_type: json
+    required: false
+    display_name: Filter
+  outputs:
+  - name: deleted
+    value_type: boolean
+  result_fields:
+  - result.deleted
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: replace_document
+  display_name: Replace document
+  description: Replace document.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: document_id
+    value_type: text
+    required: true
+    display_name: Document id
+  - name: chunks
+    value_type: array
+    required: true
+    display_name: Chunks
+    schema:
+      type: array
+      minItems: 1
+      maxItems: 512
+  - name: vectors
+    value_type: array
+    required: true
+    display_name: Vectors
+    schema:
+      type: array
+      minItems: 1
+      maxItems: 512
+  outputs:
+  - name: document_id
+    value_type: text
+  - name: chunk_count
+    value_type: integer
+  - name: replaced
+    value_type: boolean
+  result_fields:
+  - result.document_id
+  - result.chunk_count
+  - result.replaced
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: delete_document
+  display_name: Delete document
+  description: Delete document.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: document_id
+    value_type: text
+    required: true
+    display_name: Document id
+  outputs:
+  - name: document_id
+    value_type: text
+  - name: deleted
+    value_type: boolean
+  result_fields:
+  - result.document_id
+  - result.deleted
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: search
+  display_name: Search
+  description: Search.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  - name: vector
+    value_type: array
+    required: false
+    display_name: Vector
+  - name: query_vectors
+    value_type: array
+    required: false
+    display_name: Query vectors
+  - name: filter
+    value_type: json
+    required: false
+    display_name: Filter
+  - name: top_k
+    value_type: integer
+    required: false
+    display_name: Top k
+    schema:
+      type: integer
+      minimum: 1
+      maximum: 100
+  - name: score_threshold
+    value_type: number
+    required: false
+    display_name: Score threshold
+  - name: max_context_characters
+    value_type: integer
+    required: false
+    display_name: Max context characters
+    schema:
+      type: integer
+      minimum: 1
+      maximum: 1000000
+  outputs:
+  - name: matches
+    value_type: array
+  - name: context
+    value_type: text
+  - name: sources
+    value_type: array
+  - name: match_count
+    value_type: integer
+  - name: truncated
+    value_type: boolean
+  - name: answerable
+    value_type: boolean
+  result_fields:
+  - result.matches
+  - result.context
+  - result.sources
+  - result.match_count
+  - result.truncated
+  - result.answerable
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+- operation_id: ensure_indexes
+  display_name: Ensure payload indexes
+  description: Create keyword indexes required for scoped search and document lifecycle
+    on existing collections.
+  operation_kind: action
+  workflow_visible: true
+  connection_type_ids:
+  - qdrant
+  category: retrieval
+  inputs:
+  - name: connection_ref
+    value_type: connection_ref
+    required: true
+    display_name: Connection ref
+  outputs:
+  - name: collection
+    value_type: text
+  - name: indexes_ready
+    value_type: boolean
+  result_fields:
+  - result.collection
+  - result.indexes_ready
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked

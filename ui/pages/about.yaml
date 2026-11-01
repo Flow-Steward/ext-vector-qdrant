@@ -1,0 +1,5 @@
+page_id: about
+title: About
+description: Qdrant about information.
+components:
+- ref: ../components/about.yaml

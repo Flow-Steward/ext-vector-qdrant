@@ -1,0 +1,69 @@
+schema_version: extension_descriptor_v1
+lifecycle:
+  data_schema_version: 1
+  data_migrations: []
+extension_id: flowsteward.qdrant
+release_version: 1.0.0
+extension_type: service_extension
+identity:
+  display_name: Qdrant Vector Store
+  description: Document indexing, dense vector retrieval and cited RAG workflows.
+  tags:
+  - qdrant
+  - vector
+  - rag
+vendor:
+  vendor_name: Flow Steward
+listing:
+  visibility: public_reference
+  category: data
+distribution:
+  channel: private_byo
+  execution_modes:
+  - local
+  allows_self_hosted: true
+  requires_connected_control_plane: false
+  import_sources:
+  - file
+runtime:
+  contract_version: extension_host_v2
+  compatibility:
+    platform_min: 1.4.0
+  extension_contract_v2:
+    connection_types: contracts/connection_types.yaml
+    operation_manifest: contracts/operation_manifest.yaml
+    step_ui_manifest: contracts/step_ui_manifest.yaml
+dependencies:
+  extensions:
+  - extension_id: flowsteward.cohere-retrieval
+    min_version: 1.0.2
+    max_version_exclusive: 2.0.0
+    required: false
+    reason: Embeddings for bundled RAG workflows.
+  - extension_id: flowsteward.docling
+    min_version: 0.3.0
+    max_version_exclusive: 1.0.0
+    required: false
+    reason: File conversion for file ingestion workflow.
+artifacts:
+  workflows:
+  - workflow_id: qdrant_ingest_text
+    ref: artifacts/workflows/qdrant_ingest_text.yaml
+    publish: true
+  - workflow_id: qdrant_ingest_file
+    ref: artifacts/workflows/qdrant_ingest_file.yaml
+    publish: true
+  - workflow_id: qdrant_ask
+    ref: artifacts/workflows/qdrant_ask.yaml
+    publish: true
+  - workflow_id: qdrant_delete_document
+    ref: artifacts/workflows/qdrant_delete_document.yaml
+    publish: true
+  agents:
+  - agent_id: qdrant_grounded_answerer
+    ref: artifacts/agents/qdrant_grounded_answerer.yaml
+    publish: true
+  skills:
+  - skill_id: qdrant_answer_from_sources
+    ref: artifacts/skills/qdrant_answer_from_sources.yaml
+    publish: true

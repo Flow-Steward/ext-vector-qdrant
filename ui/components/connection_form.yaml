@@ -1,0 +1,39 @@
+component_id: qdrant_connection
+type: connection_form
+title: Qdrant connection
+description: Select a dedicated collection and an API key with appropriate read/write
+  permissions. Private origins require the host administrator network permission.
+data:
+  connection_kind: extension
+  connection_type: qdrant
+  config_fields:
+  - base_url
+  - collection
+  - vector_name
+  - request_timeout_seconds
+  secret_fields:
+  - api_key
+defaults:
+  display_name: Qdrant
+  request_timeout_seconds: 30
+fields:
+- path: display_name
+  label: Connection name
+  widget: text
+- path: base_url
+  label: API origin
+  widget: text
+  required: true
+- path: collection
+  label: Collection
+  widget: text
+  required: true
+- path: vector_name
+  label: Named vector (optional)
+  widget: text
+- path: request_timeout_seconds
+  label: Timeout seconds
+  widget: integer
+- path: api_key
+  label: API key
+  widget: secret

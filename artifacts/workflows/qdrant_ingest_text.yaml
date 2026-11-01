@@ -1,0 +1,217 @@
+---
+workflow_id: qdrant_ingest_text
+version: 1.0.0
+display_name: Qdrant ingest text
+description: Replace a document from text using bounded sequential one-text Cohere
+  requests. Rejects more than 512 chunks (2000 characters, overlap 200) or oversized
+  inline data; never truncates. Select matching Cohere and Qdrant project connections
+  before execution.
+enabled: true
+trigger:
+  confidence_threshold: 0.0
+settings:
+  execution_graph:
+    schema_version: 1
+    entry:
+      kind: step
+      id: prepare_document
+    edges:
+    - source:
+        kind: step
+        id: replace_document
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: done
+      rework: false
+    - source:
+        kind: step
+        id: prepare_document
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: initialize_vectors
+      rework: false
+    - source:
+        kind: step
+        id: initialize_vectors
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: batch_texts
+      rework: false
+    - source:
+        kind: step
+        id: batch_texts
+      outcome:
+        name: success
+      target:
+        kind: for_each
+        id: embed_chunks
+      rework: false
+    - source:
+        kind: step
+        id: embed_document
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: collect_vector
+      rework: false
+    - source:
+        kind: step
+        id: collect_vector
+      outcome:
+        name: success
+      target:
+        kind: for_each_exit
+        for_each_id: embed_chunks
+        lane_id:
+      rework: false
+    - source:
+        kind: for_each
+        id: embed_chunks
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: replace_document
+      rework: false
+  callable:
+    enabled: true
+    trigger_channels:
+    - ui
+    - api
+    - mcp
+    input_mode: fields
+    strict_inputs: true
+    expected_inputs:
+    - name: document_id
+      type: text
+      required: true
+      description: Document id
+    - name: text
+      type: paragraph
+      required: true
+      description: Text
+    - name: source_uri
+      type: text
+      required: false
+      description: Source uri
+    - name: title
+      type: text
+      required: false
+      description: Title
+    output_mode: variables
+    expected_outputs:
+    - name: ingestion_result
+      type: object
+      required: false
+      description: Ingestion result
+    expected_artifacts: []
+    side_effects:
+    - paid_api_call
+    - external_write
+tags:
+- qdrant
+- rag
+steps:
+- step_id: prepare_document
+  display_name: Prepare document
+  step_kind: connector
+  connector_id: qdrant.prepare_document
+  connector_install_id: qdrant
+  override:
+    connector:
+      extension_id: flowsteward.qdrant
+      action_id: prepare_document
+  input_mapping_jsonb:
+    document_id: state.inputs.document_id
+    text: state.inputs.text
+    source_uri: state.inputs.source_uri | default:""
+    title: state.inputs.title | default:""
+    chunk_size: 2000
+    overlap: 200
+    max_chunks: 512
+  output_mapping_jsonb:
+    document_id: state.document_id
+    chunks: state.document_chunks
+    texts: state.document_texts
+- step_id: initialize_vectors
+  display_name: Initialize document vectors
+  step_kind: set_variable
+  override:
+    set_variable:
+      assignments:
+        state.document_vectors: []
+- step_id: batch_texts
+  display_name: Make one-text embedding batches
+  step_kind: batch
+  override:
+    batch:
+      source_path: state.document_texts
+      batch_size: 1
+      result_target: state.embedding_batches
+      emit_partial_batch: true
+- step_id: embed_document
+  display_name: Embed document
+  step_kind: connector
+  connector_id: cohere_retrieval.embed
+  connector_install_id: cohere_retrieval
+  override:
+    connector:
+      extension_id: flowsteward.cohere-retrieval
+      action_id: embed
+  input_mapping_jsonb:
+    texts: state.embedding_batch
+    input_type: literal:search_document
+  output_mapping_jsonb:
+    vectors: state.current_vectors
+  connection_binding_jsonb: {}
+  for_each_id: embed_chunks
+- step_id: collect_vector
+  display_name: Collect vector in document order
+  step_kind: collect
+  for_each_id: embed_chunks
+  override:
+    collect:
+      target: state.document_vectors
+      source: state.current_vectors[0]
+      mode: append
+- step_id: replace_document
+  display_name: Replace document
+  step_kind: connector
+  connector_id: qdrant.replace_document
+  connector_install_id: qdrant
+  override:
+    connector:
+      extension_id: flowsteward.qdrant
+      action_id: replace_document
+  input_mapping_jsonb:
+    document_id: state.document_id
+    chunks: state.document_chunks
+    vectors: state.document_vectors
+  output_mapping_jsonb:
+    result: state.ingestion_result
+  connection_binding_jsonb: {}
+- step_id: done
+  display_name: Done
+  step_kind: stop_success
+  override:
+    stop_success:
+      message: Document replaced successfully.
+groups: []
+for_each:
+- for_each_id: embed_chunks
+  display_name: Embed document chunks sequentially
+  over: state.embedding_batches
+  item_name: embedding_batch
+  index_name: embedding_index
+  body:
+    kind: sequence
+    entry:
+      kind: step
+      id: embed_document

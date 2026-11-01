@@ -1,0 +1,10 @@
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.fs-python/
+dev-wheels/
+logs/
+dist/
+
+tests/live_qdrant.local.json

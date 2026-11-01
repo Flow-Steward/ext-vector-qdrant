@@ -1,0 +1,150 @@
+forms:
+- operation_id: prepare_document
+  title: Prepare document
+  fields:
+  - name: document_id
+    widget_type: textarea
+    label: Document id
+    required: true
+  - name: text
+    widget_type: textarea
+    label: Text
+    required: true
+  - name: source_uri
+    widget_type: textarea
+    label: Source uri
+    required: false
+  - name: title
+    widget_type: textarea
+    label: Title
+    required: false
+  - name: metadata
+    widget_type: json
+    label: Metadata
+    required: false
+  - name: chunk_size
+    widget_type: integer
+    label: Chunk size
+    required: false
+  - name: overlap
+    widget_type: integer
+    label: Overlap
+    required: false
+  - name: max_chunks
+    widget_type: integer
+    label: Max chunks
+    required: false
+- operation_id: prepare_query
+  title: Prepare query
+  fields:
+  - name: question
+    widget_type: textarea
+    label: Question
+    required: true
+- operation_id: finalize_answer
+  title: Finalize answer
+  fields:
+  - name: answer
+    widget_type: textarea
+    label: Answer
+    required: true
+  - name: cited_source_ids
+    widget_type: json
+    label: Cited source ids
+    required: true
+  - name: sources
+    widget_type: json
+    label: Sources
+    required: true
+  - name: abstained
+    widget_type: boolean
+    label: Abstained
+    required: false
+- operation_id: create_collection
+  title: Create collection
+  fields:
+  - name: dimensions
+    widget_type: integer
+    label: Dimensions
+    required: true
+  - name: distance
+    widget_type: textarea
+    label: Distance
+    required: false
+- operation_id: get_collection
+  title: Get collection
+  fields: []
+- operation_id: upsert_points
+  title: Upsert points
+  fields:
+  - name: points
+    widget_type: json
+    label: Points
+    required: true
+- operation_id: get_points
+  title: Get points
+  fields:
+  - name: ids
+    widget_type: json
+    label: Ids
+    required: true
+- operation_id: delete_points
+  title: Delete points
+  fields:
+  - name: ids
+    widget_type: json
+    label: Ids
+    required: false
+  - name: filter
+    widget_type: json
+    label: Filter
+    required: false
+- operation_id: replace_document
+  title: Replace document
+  fields:
+  - name: document_id
+    widget_type: textarea
+    label: Document id
+    required: true
+  - name: chunks
+    widget_type: json
+    label: Chunks
+    required: true
+  - name: vectors
+    widget_type: json
+    label: Vectors
+    required: true
+- operation_id: delete_document
+  title: Delete document
+  fields:
+  - name: document_id
+    widget_type: textarea
+    label: Document id
+    required: true
+- operation_id: search
+  title: Search
+  fields:
+  - name: vector
+    widget_type: json
+    label: Vector
+    required: false
+  - name: query_vectors
+    widget_type: json
+    label: Query vectors
+    required: false
+  - name: filter
+    widget_type: json
+    label: Filter
+    required: false
+  - name: top_k
+    widget_type: integer
+    label: Top k
+    required: false
+  - name: score_threshold
+    widget_type: number
+    label: Score threshold
+    required: false
+  - name: max_context_characters
+    widget_type: integer
+    label: Max context characters
+    required: false

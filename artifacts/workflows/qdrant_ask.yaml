@@ -1,0 +1,252 @@
+---
+workflow_id: qdrant_ask
+version: 1.0.0
+display_name: Qdrant ask
+description: Embed the question, retrieve excerpts and ask the project-configured
+  agent for a cited answer. Empty retrieval deterministically abstains without an
+  agent call. Configure a project model and matching Cohere/Qdrant connections.
+enabled: true
+trigger:
+  confidence_threshold: 0.0
+settings:
+  execution_graph:
+    schema_version: 1
+    entry:
+      kind: step
+      id: prepare_query
+    edges:
+    - source:
+        kind: step
+        id: prepare_query
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: embed_query
+      rework: false
+    - source:
+        kind: step
+        id: embed_query
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: search
+      rework: false
+    - source:
+        kind: step
+        id: search
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: has_sources
+      rework: false
+    - source:
+        kind: step
+        id: has_sources
+      outcome:
+        name: 'true'
+      target:
+        kind: step
+        id: answer_from_sources
+      rework: false
+    - source:
+        kind: step
+        id: has_sources
+      outcome:
+        name: 'false'
+      target:
+        kind: step
+        id: empty_retrieval
+      rework: false
+    - source:
+        kind: step
+        id: answer_from_sources
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: publish_answer
+      rework: false
+    - source:
+        kind: step
+        id: publish_answer
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: finalize_answer
+      rework: false
+    - source:
+        kind: step
+        id: empty_retrieval
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: finalize_answer
+      rework: false
+    - source:
+        kind: step
+        id: finalize_answer
+      outcome:
+        name: success
+      target:
+        kind: step
+        id: done
+      rework: false
+  callable:
+    enabled: true
+    trigger_channels:
+    - ui
+    - api
+    - mcp
+    input_mode: fields
+    strict_inputs: true
+    expected_inputs:
+    - name: question
+      type: paragraph
+      required: true
+      description: Question
+    - name: top_k
+      type: number
+      required: false
+      description: Top k
+    output_mode: variables
+    expected_outputs:
+    - name: answer
+      type: text
+      required: true
+      description: Answer
+    - name: sources
+      type: array
+      required: true
+      description: Sources
+    - name: grounded
+      type: boolean
+      required: true
+      description: Grounded
+    - name: abstained
+      type: boolean
+      required: true
+      description: Abstained
+    - name: citation_count
+      type: number
+      required: true
+      description: Citation count
+    expected_artifacts: []
+    side_effects:
+    - paid_api_call
+tags:
+- qdrant
+- rag
+steps:
+- step_id: prepare_query
+  display_name: Prepare query
+  step_kind: connector
+  connector_id: qdrant.prepare_query
+  connector_install_id: qdrant
+  override:
+    connector:
+      extension_id: flowsteward.qdrant
+      action_id: prepare_query
+  input_mapping_jsonb:
+    question: state.inputs.question
+  output_mapping_jsonb:
+    question: state.question
+    texts: state.query_texts
+- step_id: embed_query
+  display_name: Embed query
+  step_kind: connector
+  connector_id: cohere_retrieval.embed
+  connector_install_id: cohere_retrieval
+  override:
+    connector:
+      extension_id: flowsteward.cohere-retrieval
+      action_id: embed
+  input_mapping_jsonb:
+    texts: state.query_texts
+    input_type: literal:search_query
+  output_mapping_jsonb:
+    vectors: state.query_vectors
+  connection_binding_jsonb: {}
+- step_id: search
+  display_name: Search
+  step_kind: connector
+  connector_id: qdrant.search
+  connector_install_id: qdrant
+  override:
+    connector:
+      extension_id: flowsteward.qdrant
+      action_id: search
+  input_mapping_jsonb:
+    query_vectors: state.query_vectors
+    top_k: state.inputs.top_k | default:5
+  output_mapping_jsonb:
+    sources: state.retrieved_sources
+    context: state.retrieved_context
+    answerable: state.answerable
+  connection_binding_jsonb: {}
+- step_id: has_sources
+  display_name: Has sources
+  step_kind: if
+  override:
+    if:
+      condition: state.answerable == true
+- step_id: answer_from_sources
+  display_name: Answer from retrieved excerpts
+  step_kind: agent
+  agent_id: qdrant_grounded_answerer
+  skill_id: qdrant_answer_from_sources
+  input_mapping_jsonb:
+    question: state.question
+    context: state.retrieved_context
+- step_id: publish_answer
+  display_name: Publish answer
+  step_kind: set_variable
+  override:
+    set_variable:
+      assignments:
+        state.answer:
+          source: state.answer
+        state.cited_source_ids:
+          source: state.cited_source_ids
+        state.abstained:
+          source: state.abstained
+- step_id: empty_retrieval
+  display_name: Empty retrieval
+  step_kind: set_variable
+  override:
+    set_variable:
+      assignments:
+        state.answer: ''
+        state.cited_source_ids: []
+        state.abstained: true
+- step_id: finalize_answer
+  display_name: Finalize answer
+  step_kind: connector
+  connector_id: qdrant.finalize_answer
+  connector_install_id: qdrant
+  override:
+    connector:
+      extension_id: flowsteward.qdrant
+      action_id: finalize_answer
+  input_mapping_jsonb:
+    answer: 'state.answer | default:""'
+    cited_source_ids: 'state.cited_source_ids | default:[]'
+    sources: state.retrieved_sources
+    abstained: state.abstained
+  output_mapping_jsonb:
+    answer: 'state.answer | default:""'
+    sources: state.sources
+    grounded: state.grounded
+    abstained: state.abstained
+    citation_count: state.citation_count
+- step_id: done
+  display_name: Done
+  step_kind: stop_success
+  override:
+    stop_success:
+      message: Grounded answer or explicit abstention produced.
+groups: []

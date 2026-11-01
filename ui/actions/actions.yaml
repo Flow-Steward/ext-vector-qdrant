@@ -1,0 +1,459 @@
+actions:
+- action_id: prepare_document
+  workflow_visible: true
+  title: Prepare document
+  description: Prepare document.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: document_id
+    type: string
+    required: true
+  - name: text
+    type: string
+    required: true
+  - name: source_uri
+    type: string
+    required: false
+  - name: title
+    type: string
+    required: false
+  - name: metadata
+    type: object
+    required: false
+  - name: chunk_size
+    type: integer
+    required: false
+  - name: overlap
+    type: integer
+    required: false
+  - name: max_chunks
+    type: integer
+    required: false
+  result_fields:
+  - result.document_id
+  - result.chunks
+  - result.texts
+  - result.chunk_count
+  - result.content_hash
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: prepare_query
+  workflow_visible: true
+  title: Prepare query
+  description: Prepare query.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: question
+    type: string
+    required: true
+  result_fields:
+  - result.question
+  - result.texts
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: finalize_answer
+  workflow_visible: true
+  title: Finalize answer
+  description: Finalize answer.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: answer
+    type: string
+    required: true
+  - name: cited_source_ids
+    type: array
+    required: true
+  - name: sources
+    type: array
+    required: true
+  - name: abstained
+    type: boolean
+    required: false
+  result_fields:
+  - result.answer
+  - result.sources
+  - result.citation_count
+  - result.grounded
+  - result.abstained
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: create_collection
+  workflow_visible: true
+  title: Create collection
+  description: Create collection.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: dimensions
+    type: integer
+    required: true
+  - name: distance
+    type: string
+    required: false
+  result_fields:
+  - result.collection
+  - result.created
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: get_collection
+  workflow_visible: true
+  title: Get collection
+  description: Get collection.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  result_fields:
+  - result.collection
+  - result.info
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: upsert_points
+  workflow_visible: true
+  title: Upsert points
+  description: Upsert points.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: points
+    type: array
+    required: true
+  result_fields:
+  - result.upserted_count
+  - result.ids
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: get_points
+  workflow_visible: true
+  title: Get points
+  description: Get points.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: ids
+    type: array
+    required: true
+  result_fields:
+  - result.points
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: delete_points
+  workflow_visible: true
+  title: Delete points
+  description: Delete points.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: ids
+    type: array
+    required: false
+  - name: filter
+    type: object
+    required: false
+  result_fields:
+  - result.deleted
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: replace_document
+  workflow_visible: true
+  title: Replace document
+  description: Replace document.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: document_id
+    type: string
+    required: true
+  - name: chunks
+    type: array
+    required: true
+  - name: vectors
+    type: array
+    required: true
+  result_fields:
+  - result.document_id
+  - result.chunk_count
+  - result.replaced
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+  contract:
+    serialization:
+      resource: document
+      key_fields:
+      - document_id
+- action_id: delete_document
+  workflow_visible: true
+  title: Delete document
+  description: Delete document.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: document_id
+    type: string
+    required: true
+  result_fields:
+  - result.document_id
+  - result.deleted
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+  contract:
+    serialization:
+      resource: document
+      key_fields:
+      - document_id
+- action_id: search
+  workflow_visible: true
+  title: Search
+  description: Search.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  - name: vector
+    type: array
+    required: false
+  - name: query_vectors
+    type: array
+    required: false
+  - name: filter
+    type: object
+    required: false
+  - name: top_k
+    type: integer
+    required: false
+  - name: score_threshold
+    type: number
+    required: false
+  - name: max_context_characters
+    type: integer
+    required: false
+  result_fields:
+  - result.matches
+  - result.context
+  - result.sources
+  - result.match_count
+  - result.truncated
+  - result.answerable
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
+- action_id: ensure_indexes
+  workflow_visible: true
+  title: Ensure payload indexes
+  description: Create keyword indexes required for scoped search and document lifecycle
+    on existing collections.
+  required_scopes:
+  - extension:invoke
+  handler:
+    mode: extension
+  parameters:
+  - name: connection_ref
+    type: string
+    required: true
+  result_fields:
+  - result.collection
+  - result.indexes_ready
+  error_codes:
+  - invalid_payload
+  - invalid_connection
+  - unknown_action
+  - effect_claim_required
+  - test_mode_suppressed
+  - authentication_failed
+  - not_found
+  - conflict
+  - rate_limited
+  - provider_unavailable
+  - invalid_provider_response
+  - response_too_large
+  - network_blocked
+  mutates_platform: false
