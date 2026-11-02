@@ -1,6 +1,6 @@
 ---
 skill_id: qdrant_answer_from_sources
-version: 1.0.0
+version: 1.0.1
 display_name: Answer from Qdrant sources
 description: Generate a grounded answer with explicit citation identifiers.
 enabled: true
@@ -29,8 +29,8 @@ expected_inputs:
 expected_outputs:
 - name: answer
   type: text
-  required: true
-  description: Answer
+  required: false
+  description: Answer, empty when abstaining
 - name: cited_source_ids
   type: array
   required: true

@@ -47,5 +47,15 @@ retrying. Provider failures stop the workflow before downstream steps.
 
 Retrieved excerpts are untrusted data. The skill rejects instructions inside
 excerpts, permits only excerpt-supported facts, requires markers such as `[S1]`,
-and returns `answer`, `cited_source_ids`, and `abstained`. Invalid citations fail
-finalization rather than being silently accepted.
+and returns `answer`, `cited_source_ids`, and `abstained`. When nonempty excerpts
+are insufficient, the skill returns an empty `answer`, no cited IDs, and
+`abstained: true`. The answer field is optional in its Core output contract so
+that this valid abstention reaches finalization, which returns a visible
+insufficient-evidence reply with no citations. Invalid citations fail finalization
+rather than being silently accepted.
+
+Extension 1.0.2 ships `qdrant_answer_from_sources` 1.0.1 with this repaired
+contract. Artifact IDs and workflow/agent references stay stable. Installing or
+updating the extension exposes the corrected bundled skill; independently copied
+project artifacts must be reviewed and reimported by their owner. No project
+customizations are overwritten by this package.

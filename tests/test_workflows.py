@@ -151,3 +151,36 @@ def test_current_core_import_and_runtime_selector_contracts():
         check=False,
     )
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+def test_insufficient_evidence_passes_core_contract_before_publication():
+    """A valid model abstention must reach the real citation finalizer."""
+    import json
+    import os
+    import subprocess
+
+    import pytest
+
+    if not Path("/app/core/application/workflows").is_dir():
+        pytest.skip("Additional Core contract audit runs inside fs-audit")
+    result = subprocess.run(
+        [
+            "/usr/local/bin/python",
+            str(ROOT / "scripts/validate_workflows.py"),
+            str(ROOT),
+            "--abstention-only",
+        ],
+        env={**os.environ, "PYTHONPATH": "/app"},
+        text=True,
+        capture_output=True,
+        timeout=30,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout) == {
+        "answer": "I do not have enough retrieved evidence to answer this question.",
+        "sources": [],
+        "citation_count": 0,
+        "grounded": False,
+        "abstained": True,
+    }
