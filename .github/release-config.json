@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "extension_id": "flowsteward.qdrant",
+  "runtime_targets": [
+    "linux-amd64",
+    "linux-arm64"
+  ],
+  "test_requirements": [
+    "requirements-dev.txt"
+  ],
+  "test_paths": [
+    "tests/test_citations.py",
+    "tests/test_documents.py",
+    "tests/test_runtime.py",
+    "tests/test_workflows.py::test_all_four_workflows_have_connected_execution_graphs",
+    "tests/test_workflows.py::test_ingestion_orders_document_embeddings_before_replace_and_bounds_batch",
+    "tests/test_workflows.py::test_docling_truncation_stops_before_any_embedding_or_replacement",
+    "tests/test_workflows.py::test_ask_uses_query_matrix_and_skips_agent_when_retrieval_empty",
+    "tests/test_workflows.py::test_agent_inherits_project_provider_and_skill_has_grounding_contract"
+  ],
+  "additional_assets": [],
+  "payload_sources": []
+}
