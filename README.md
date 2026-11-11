@@ -1,6 +1,14 @@
 # Qdrant Vector Store
 
-Flow Steward host-v2 extension (`flowsteward.qdrant`, runtime 1.4.0+). Read and write dense vectors, ingest/update/delete document chunks, retrieve bounded source excerpts and validate cited RAG answers. No database triggers.
+Flow Steward extension `flowsteward.qdrant`, version **1.0.3**.
+
+Build document retrieval and cited-answer workflows around a Qdrant collection. Prepare text into overlapping chunks with stable IDs and provenance, replace a document’s stored chunks, delete a document, or work directly with vector points through upsert, get and delete operations. Dense vector search accepts filters and score thresholds and returns matches, source identifiers, exact excerpts and assembled context for downstream steps.
+
+Collection actions create or inspect the selected collection and ensure the payload indexes required for scoped retrieval. Data access is tied to the account, project and connection. Query preparation and answer finalization support source-based responses: finalization checks citation IDs and markers, and empty retrieval produces an abstention.
+
+Bundled workflows cover text ingestion, file ingestion, questions and document deletion. They compose Cohere Retrieval for embeddings, Docling for file conversion and the project’s configured answer agent; those services need their own installation and connections. The Qdrant connector itself does not generate embeddings or run an LLM. Use matching embedding models and dimensions for ingestion and questions. Citation checks validate references against retrieved sources, helping later workflow steps present excerpts and citations alongside the answer.
+
+Configure a project connection with Qdrant API origin, collection, optional vector name and API key, then create the collection or ensure payload indexes on an existing one. For bundled workflows, install Cohere Retrieval and Docling, import the workflow/agent/skill artifacts, select their connections and configure the project answer model.
 
 ## Setup
 
