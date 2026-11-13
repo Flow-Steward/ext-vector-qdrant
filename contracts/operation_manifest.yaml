@@ -1,7 +1,8 @@
 operations:
 - operation_id: prepare_document
-  display_name: Prepare document
-  description: Prepare document.
+  display_name: Split document text into chunks
+  description: Split text locally into overlapping Unicode chunks with stable IDs, source information and a content
+    hash. Returns chunks and ordered texts for an embedding step; does not call Qdrant or generate vectors.
   operation_kind: action
   workflow_visible: true
   connection_type_ids: []
@@ -10,7 +11,7 @@ operations:
   - name: document_id
     value_type: text
     required: true
-    display_name: Document id
+    display_name: Stable document ID
     schema:
       type: string
       minLength: 1
@@ -18,26 +19,26 @@ operations:
   - name: text
     value_type: text
     required: true
-    display_name: Text
+    display_name: Document text
     schema:
       type: string
       minLength: 1
   - name: source_uri
     value_type: text
     required: false
-    display_name: Source uri
+    display_name: Document source URI
   - name: title
     value_type: text
     required: false
-    display_name: Title
+    display_name: Document title
   - name: metadata
     value_type: json
     required: false
-    display_name: Metadata
+    display_name: Document metadata (JSON object)
   - name: chunk_size
     value_type: integer
     required: false
-    display_name: Chunk size
+    display_name: Maximum characters per chunk
     schema:
       type: integer
       minimum: 128
@@ -45,7 +46,7 @@ operations:
   - name: overlap
     value_type: integer
     required: false
-    display_name: Overlap
+    display_name: Overlap characters
     schema:
       type: integer
       minimum: 0
@@ -53,7 +54,7 @@ operations:
   - name: max_chunks
     value_type: integer
     required: false
-    display_name: Max chunks
+    display_name: Maximum chunks
     schema:
       type: integer
       minimum: 1
@@ -90,8 +91,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: prepare_query
-  display_name: Prepare query
-  description: Prepare query.
+  display_name: Prepare a question for embedding
+  description: Validate a question and return its text in the shape needed by a later embedding step. Runs locally;
+    does not search Qdrant or call an LLM.
   operation_kind: action
   workflow_visible: true
   connection_type_ids: []
@@ -100,7 +102,7 @@ operations:
   - name: question
     value_type: text
     required: true
-    display_name: Question
+    display_name: Question to retrieve evidence for
     schema:
       type: string
       minLength: 1
@@ -127,8 +129,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: finalize_answer
-  display_name: Finalize answer
-  description: Finalize answer.
+  display_name: Validate answer citations
+  description: Check an answer’s citation markers and cited IDs against the sources returned by search. Returns
+    cited sources or an abstention; citation consistency does not prove factual support and no LLM is called.
   operation_kind: action
   workflow_visible: true
   connection_type_ids: []
@@ -137,19 +140,19 @@ operations:
   - name: answer
     value_type: text
     required: true
-    display_name: Answer
+    display_name: Answer with source markers
   - name: cited_source_ids
     value_type: array
     required: true
-    display_name: Cited source ids
+    display_name: Cited source IDs (JSON array)
   - name: sources
     value_type: array
     required: true
-    display_name: Sources
+    display_name: Search sources (JSON array)
   - name: abstained
     value_type: boolean
     required: false
-    display_name: Abstained
+    display_name: Answer is an abstention
   outputs:
   - name: answer
     value_type: text
@@ -182,8 +185,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: create_collection
-  display_name: Create collection
-  description: Create collection.
+  display_name: Create a vector collection
+  description: Create the connection collection with chosen dimensions and distance, then create keyword indexes
+    for scoped retrieval. Requires Qdrant collection-administration access; generate embeddings separately.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -193,11 +197,11 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: dimensions
     value_type: integer
     required: true
-    display_name: Dimensions
+    display_name: Embedding dimensions
     schema:
       type: integer
       minimum: 1
@@ -205,7 +209,7 @@ operations:
   - name: distance
     value_type: text
     required: false
-    display_name: Distance
+    display_name: Vector distance metric
     schema:
       type: string
       enum:
@@ -236,8 +240,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: get_collection
-  display_name: Get collection
-  description: Get collection.
+  display_name: Inspect a vector collection
+  description: Read the connection collection configuration and vector schema. Use to verify dimensions, distance
+    and any named vector before ingestion.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -247,7 +252,7 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   outputs:
   - name: collection
     value_type: text
@@ -271,8 +276,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: upsert_points
-  display_name: Upsert points
-  description: Upsert points.
+  display_name: Save or replace vector points by ID
+  description: Save 1–128 raw points with numeric vectors and optional payload. Logical IDs are isolated by account,
+    project and connection; generate matching embeddings before this step.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -282,11 +288,11 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: points
     value_type: array
     required: true
-    display_name: Points
+    display_name: Vector points (JSON array)
     schema:
       type: array
       minItems: 1
@@ -314,8 +320,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: get_points
-  display_name: Get points
-  description: Get points.
+  display_name: Read vector points by ID
+  description: Read 1–128 logical point IDs within this account, project and connection. Returns stored point data
+    without a similarity search.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -325,11 +332,11 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: ids
     value_type: array
     required: true
-    display_name: Ids
+    display_name: Logical point IDs (JSON array)
     schema:
       type: array
       minItems: 1
@@ -354,8 +361,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: delete_points
-  display_name: Delete points
-  description: Delete points.
+  display_name: Delete vector points by IDs or filter
+  description: Delete raw points within this connection scope using explicit IDs or a nonempty Qdrant filter. Supply
+    one selection method; does not delete the collection.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -365,11 +373,11 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: ids
     value_type: array
     required: false
-    display_name: Ids
+    display_name: Logical point IDs (JSON array)
     schema:
       type: array
       minItems: 1
@@ -377,7 +385,7 @@ operations:
   - name: filter
     value_type: json
     required: false
-    display_name: Filter
+    display_name: Qdrant payload filter (JSON)
   outputs:
   - name: deleted
     value_type: boolean
@@ -398,8 +406,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: replace_document
-  display_name: Replace document
-  description: Replace document.
+  display_name: Replace a document and its embeddings
+  description: Save prepared chunks with one matching embedding per chunk, then remove stale chunks for the same
+    document. Requires ordered vectors from an embedding step; multiple Qdrant requests are not atomic.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -409,15 +418,15 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: document_id
     value_type: text
     required: true
-    display_name: Document id
+    display_name: Stable document ID
   - name: chunks
     value_type: array
     required: true
-    display_name: Chunks
+    display_name: Prepared document chunks (JSON array)
     schema:
       type: array
       minItems: 1
@@ -425,7 +434,7 @@ operations:
   - name: vectors
     value_type: array
     required: true
-    display_name: Vectors
+    display_name: Chunk embeddings (JSON matrix)
     schema:
       type: array
       minItems: 1
@@ -456,8 +465,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: delete_document
-  display_name: Delete document
-  description: Delete document.
+  display_name: Delete all chunks of a document
+  description: Delete all stored chunks for a stable document ID within this account, project and connection. Does
+    not delete the collection or raw points.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -467,11 +477,11 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: document_id
     value_type: text
     required: true
-    display_name: Document id
+    display_name: Stable document ID
   outputs:
   - name: document_id
     value_type: text
@@ -495,8 +505,10 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: search
-  display_name: Search
-  description: Search.
+  display_name: Search similar text and build context
+  description: Search the connection collection using a query embedding, optional Qdrant filter and score threshold.
+    Returns matches, exact source excerpts and bounded context for an answer step; does not generate embeddings
+    or an answer.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -506,23 +518,23 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   - name: vector
     value_type: array
     required: false
-    display_name: Vector
+    display_name: Question embedding (JSON array)
   - name: query_vectors
     value_type: array
     required: false
-    display_name: Query vectors
+    display_name: Query embeddings (one-row JSON matrix)
   - name: filter
     value_type: json
     required: false
-    display_name: Filter
+    display_name: Qdrant payload filter (JSON)
   - name: top_k
     value_type: integer
     required: false
-    display_name: Top k
+    display_name: Maximum matches
     schema:
       type: integer
       minimum: 1
@@ -530,11 +542,11 @@ operations:
   - name: score_threshold
     value_type: number
     required: false
-    display_name: Score threshold
+    display_name: Similarity score threshold
   - name: max_context_characters
     value_type: integer
     required: false
-    display_name: Max context characters
+    display_name: Maximum context characters
     schema:
       type: integer
       minimum: 1
@@ -574,9 +586,9 @@ operations:
   - response_too_large
   - network_blocked
 - operation_id: ensure_indexes
-  display_name: Ensure payload indexes
-  description: Create keyword indexes required for scoped search and document lifecycle
-    on existing collections.
+  display_name: Ensure retrieval payload indexes
+  description: Create keyword indexes for _fs_scope, _fs_kind and document_id on an existing collection. Required
+    for scoped retrieval under Qdrant strict mode; needs administration privileges.
   operation_kind: action
   workflow_visible: true
   connection_type_ids:
@@ -586,7 +598,7 @@ operations:
   - name: connection_ref
     value_type: connection_ref
     required: true
-    display_name: Connection ref
+    display_name: Project connection
   outputs:
   - name: collection
     value_type: text

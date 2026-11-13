@@ -1,8 +1,9 @@
 actions:
 - action_id: prepare_document
   workflow_visible: true
-  title: Prepare document
-  description: Prepare document.
+  title: Split document text into chunks
+  description: Split text locally into overlapping Unicode chunks with stable IDs, source information and a content
+    hash. Returns chunks and ordered texts for an embedding step; does not call Qdrant or generate vectors.
   required_scopes:
   - extension:invoke
   handler:
@@ -55,8 +56,9 @@ actions:
   mutates_platform: false
 - action_id: prepare_query
   workflow_visible: true
-  title: Prepare query
-  description: Prepare query.
+  title: Prepare a question for embedding
+  description: Validate a question and return its text in the shape needed by a later embedding step. Runs locally;
+    does not search Qdrant or call an LLM.
   required_scopes:
   - extension:invoke
   handler:
@@ -85,8 +87,9 @@ actions:
   mutates_platform: false
 - action_id: finalize_answer
   workflow_visible: true
-  title: Finalize answer
-  description: Finalize answer.
+  title: Validate answer citations
+  description: Check an answer’s citation markers and cited IDs against the sources returned by search. Returns
+    cited sources or an abstention; citation consistency does not prove factual support and no LLM is called.
   required_scopes:
   - extension:invoke
   handler:
@@ -127,8 +130,9 @@ actions:
   mutates_platform: false
 - action_id: create_collection
   workflow_visible: true
-  title: Create collection
-  description: Create collection.
+  title: Create a vector collection
+  description: Create the connection collection with chosen dimensions and distance, then create keyword indexes
+    for scoped retrieval. Requires Qdrant collection-administration access; generate embeddings separately.
   required_scopes:
   - extension:invoke
   handler:
@@ -163,8 +167,9 @@ actions:
   mutates_platform: false
 - action_id: get_collection
   workflow_visible: true
-  title: Get collection
-  description: Get collection.
+  title: Inspect a vector collection
+  description: Read the connection collection configuration and vector schema. Use to verify dimensions, distance
+    and any named vector before ingestion.
   required_scopes:
   - extension:invoke
   handler:
@@ -193,8 +198,9 @@ actions:
   mutates_platform: false
 - action_id: upsert_points
   workflow_visible: true
-  title: Upsert points
-  description: Upsert points.
+  title: Save or replace vector points by ID
+  description: Save 1–128 raw points with numeric vectors and optional payload. Logical IDs are isolated by account,
+    project and connection; generate matching embeddings before this step.
   required_scopes:
   - extension:invoke
   handler:
@@ -226,8 +232,9 @@ actions:
   mutates_platform: false
 - action_id: get_points
   workflow_visible: true
-  title: Get points
-  description: Get points.
+  title: Read vector points by ID
+  description: Read 1–128 logical point IDs within this account, project and connection. Returns stored point data
+    without a similarity search.
   required_scopes:
   - extension:invoke
   handler:
@@ -258,8 +265,9 @@ actions:
   mutates_platform: false
 - action_id: delete_points
   workflow_visible: true
-  title: Delete points
-  description: Delete points.
+  title: Delete vector points by IDs or filter
+  description: Delete raw points within this connection scope using explicit IDs or a nonempty Qdrant filter. Supply
+    one selection method; does not delete the collection.
   required_scopes:
   - extension:invoke
   handler:
@@ -293,8 +301,9 @@ actions:
   mutates_platform: false
 - action_id: replace_document
   workflow_visible: true
-  title: Replace document
-  description: Replace document.
+  title: Replace a document and its embeddings
+  description: Save prepared chunks with one matching embedding per chunk, then remove stale chunks for the same
+    document. Requires ordered vectors from an embedding step; multiple Qdrant requests are not atomic.
   required_scopes:
   - extension:invoke
   handler:
@@ -338,8 +347,9 @@ actions:
       - document_id
 - action_id: delete_document
   workflow_visible: true
-  title: Delete document
-  description: Delete document.
+  title: Delete all chunks of a document
+  description: Delete all stored chunks for a stable document ID within this account, project and connection. Does
+    not delete the collection or raw points.
   required_scopes:
   - extension:invoke
   handler:
@@ -376,8 +386,10 @@ actions:
       - document_id
 - action_id: search
   workflow_visible: true
-  title: Search
-  description: Search.
+  title: Search similar text and build context
+  description: Search the connection collection using a query embedding, optional Qdrant filter and score threshold.
+    Returns matches, exact source excerpts and bounded context for an answer step; does not generate embeddings
+    or an answer.
   required_scopes:
   - extension:invoke
   handler:
@@ -428,9 +440,9 @@ actions:
   mutates_platform: false
 - action_id: ensure_indexes
   workflow_visible: true
-  title: Ensure payload indexes
-  description: Create keyword indexes required for scoped search and document lifecycle
-    on existing collections.
+  title: Ensure retrieval payload indexes
+  description: Create keyword indexes for _fs_scope, _fs_kind and document_id on an existing collection. Required
+    for scoped retrieval under Qdrant strict mode; needs administration privileges.
   required_scopes:
   - extension:invoke
   handler:

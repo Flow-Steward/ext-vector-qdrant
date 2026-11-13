@@ -1,6 +1,6 @@
 # Qdrant Vector Store
 
-Flow Steward extension `flowsteward.qdrant`, version **1.0.4**.
+Flow Steward extension `flowsteward.qdrant`, version **1.0.5**.
 
 Build document retrieval and cited-answer workflows around a Qdrant collection. Prepare text into overlapping chunks with stable IDs and provenance, replace a document’s stored chunks, delete a document, or work directly with vector points through upsert, get and delete operations. Dense vector search accepts filters and score thresholds and returns matches, source identifiers, exact excerpts and assembled context for downstream steps.
 
@@ -14,7 +14,7 @@ Configure a project connection with Qdrant API origin, collection, optional vect
 
 Create a project Qdrant connection with the API origin, collection name, optional vector name and API key. Use a dedicated collection for this connection. Origins must have no credentials, path, query or fragment. Public endpoints require HTTPS. Private/self-hosted endpoints require the administrator's `FS_ALLOW_PRIVATE_REMOTE_URLS` permission; local HTTP is allowed only for private/local addresses. The host egress policy still applies. Secrets are taken only from the selected connection.
 
-Run **Create collection** with the embedding dimension and distance (`Cosine` by default). This also creates keyword indexes for `_fs_scope`, `_fs_kind`, and `document_id`, needed by Qdrant Cloud strict mode. For an existing collection run **Ensure payload indexes** before ingestion or retrieval. Named vectors must already match the connection's vector name. Use the same embedding model, dimensions and vector name for ingestion and questions; model changes require reindexing.
+Run **Create a vector collection** with the embedding dimension and distance (`Cosine` by default). This also creates keyword indexes for `_fs_scope`, `_fs_kind`, and `document_id`, needed by Qdrant Cloud strict mode. For an existing collection run **Ensure retrieval payload indexes** before ingestion or retrieval. Named vectors must already match the connection's vector name. Use the same embedding model, dimensions and vector name for ingestion and questions; model changes require reindexing.
 
 The connector does not generate embeddings or run an LLM. Bundled runnable workflows compose Cohere Retrieval for embeddings, Docling for file conversion and the project's configured agent for answers. See [workflow setup](artifacts/README.md). Provider calls may be billed. Install the optional dependencies and select project connections on imported steps.
 
@@ -49,7 +49,7 @@ pinned shared GitHub Actions workflow using `.github/release-config.json` to tes
 package both Linux runtime targets, and publish the release assets automatically.
 Manual ZIP uploads are not part of the release process.
 
-After merging the version **1.0.4** update into `main`, create and push its tag:
+After merging the version **1.0.5** update into `main`, create and push its tag:
 
 ```sh
 git switch main
@@ -69,3 +69,7 @@ The shared workflow installs the verified first-party SDK wheel before test
 dependencies. Where native payloads are absent from source, the recipe restores
 only the listed missing files from checksum-pinned published archives; the source
 packager still verifies their provenance before packaging.
+
+## Workflow action setup and examples
+
+See [Workflow actions](docs/workflow-actions.md) for connection setup, inputs and practical examples.

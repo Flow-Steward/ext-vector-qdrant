@@ -2,7 +2,7 @@ component_id: qdrant_about
 type: markdown
 title: Qdrant Vector Store
 content: Read and write dense vectors and document chunks. Create a collection matching
-  your embedding dimensions, or run Ensure payload indexes on an existing one. Import
+  your embedding dimensions, or run Ensure retrieval payload indexes on an existing one. Import
   the bundled text/file ingestion, question and deletion workflows, then select Qdrant/Cohere/Docling
   connections. Configure the project agent for answers. See README.md for setup, bounds
   and uncertain write reconciliation. Citation validation checks source IDs and markers;

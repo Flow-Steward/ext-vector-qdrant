@@ -1,150 +1,236 @@
 forms:
 - operation_id: prepare_document
-  title: Prepare document
+  title: Split document text into chunks
   fields:
   - name: document_id
     widget_type: textarea
-    label: Document id
+    label: Stable document ID
     required: true
+    help_text: Nonempty identifier, at most 256 UTF-8 bytes, shared by this document’s chunks. Reuse it to replace
+      or delete the same document.
+    placeholder: manual_42
   - name: text
     widget_type: textarea
-    label: Text
+    label: Document text
     required: true
+    help_text: Complete nonempty Unicode text to split. Maximum 1 MiB UTF-8; the bounded workflow result can require
+      smaller documents. This action does not extract text from files.
+    placeholder: Refunds are available within 30 days.
   - name: source_uri
     widget_type: textarea
-    label: Source uri
+    label: Document source URI
     required: false
+    help_text: Optional HTTP(S) or artifact URI for provenance and returned citations. No embedded credentials;
+      the connector does not fetch this URI.
+    placeholder: https://example.com/refund-policy
   - name: title
     widget_type: textarea
-    label: Title
+    label: Document title
     required: false
+    help_text: Optional human-readable title carried into chunks and retrieval sources; maximum 1024 UTF-8 bytes.
+    placeholder: Refund policy
   - name: metadata
     widget_type: json
-    label: Metadata
+    label: Document metadata (JSON object)
     required: false
+    help_text: Optional metadata carried into prepared chunks. Reserved internal fields cannot be supplied. Use
+      a JSON object with your own document attributes.
+    placeholder: '{"language":"en","category":"refunds"}'
   - name: chunk_size
     widget_type: integer
-    label: Chunk size
+    label: Maximum characters per chunk
     required: false
+    help_text: Optional integer from 128 to 16000; default 2000 Unicode characters. Choose a size that fits your
+      embedding model input limit.
+    placeholder: '2000'
   - name: overlap
     widget_type: integer
-    label: Overlap
+    label: Overlap characters
     required: false
+    help_text: Optional integer from 0 to chunk size minus one; default 200. Repeats text between adjacent chunks
+      to preserve context.
+    placeholder: '200'
   - name: max_chunks
     widget_type: integer
-    label: Max chunks
+    label: Maximum chunks
     required: false
+    help_text: Optional integer from 1 to 512; default 512. Exceeding this count fails instead of truncating text;
+      split the source or adjust chunk size.
+    placeholder: '512'
 - operation_id: prepare_query
-  title: Prepare query
+  title: Prepare a question for embedding
   fields:
   - name: question
     widget_type: textarea
-    label: Question
+    label: Question to retrieve evidence for
     required: true
+    help_text: Nonempty question text to prepare for a later embedding step. Use the same embedding model and dimensions
+      as the document chunks.
+    placeholder: What is the refund deadline?
 - operation_id: finalize_answer
-  title: Finalize answer
+  title: Validate answer citations
   fields:
   - name: answer
     widget_type: textarea
-    label: Answer
+    label: Answer with source markers
     required: true
+    help_text: Answer from a later agent step, using markers such as [S1]. Markers must exactly match Cited source
+      IDs and refer to supplied search sources.
+    placeholder: Refunds are available within 30 days. [S1]
   - name: cited_source_ids
     widget_type: json
-    label: Cited source ids
+    label: Cited source IDs (JSON array)
     required: true
+    help_text: IDs referenced by answer markers, for example ["S1"]. Must exactly match the markers and be present
+      in Sources. For an explicit abstention use an empty array.
+    placeholder: '["S1"]'
   - name: sources
     widget_type: json
-    label: Sources
+    label: Search sources (JSON array)
     required: true
+    help_text: Map the complete sources output from the same Search similar text and build context step. Do not
+      replace it with invented citations. Empty sources produce an abstention.
   - name: abstained
     widget_type: boolean
-    label: Abstained
+    label: Answer is an abstention
     required: false
+    help_text: Optional boolean; default false. Enable when the answer declines to answer; then supply no source
+      IDs or citation markers.
 - operation_id: create_collection
-  title: Create collection
+  title: Create a vector collection
   fields:
   - name: dimensions
     widget_type: integer
-    label: Dimensions
+    label: Embedding dimensions
     required: true
+    help_text: Required integer from 1 to 65536. Match the exact length produced by the embedding model; a named
+      vector follows the connection vector name.
+    placeholder: '1536'
   - name: distance
     widget_type: textarea
-    label: Distance
+    label: Vector distance metric
     required: false
+    help_text: 'Optional: Cosine (default), Dot, Euclid or Manhattan. Choose the metric intended for your embeddings
+      and keep it consistent for ingestion and retrieval.'
 - operation_id: get_collection
-  title: Get collection
+  title: Inspect a vector collection
   fields: []
 - operation_id: upsert_points
-  title: Upsert points
+  title: Save or replace vector points by ID
   fields:
   - name: points
     widget_type: json
-    label: Points
+    label: Vector points (JSON array)
     required: true
+    help_text: Supply 1–128 objects with unique logical id, vector and optional payload. Payload cannot use reserved
+      internal keys. Vectors must match collection dimensions; the example needs a 3-dimensional collection.
+    placeholder: '[{"id":"manual_42_part_1","vector":[0.1,0.2,0.3],"payload":{"text":"Refunds within 30 days.","language":"en"}}]'
 - operation_id: get_points
-  title: Get points
+  title: Read vector points by ID
   fields:
   - name: ids
     widget_type: json
-    label: Ids
+    label: Logical point IDs (JSON array)
     required: true
+    help_text: Supply 1–128 logical IDs used when saving raw points. The connector maps these IDs into this connection’s
+      isolated point space.
+    placeholder: '["manual_42_part_1"]'
 - operation_id: delete_points
-  title: Delete points
+  title: Delete vector points by IDs or filter
   fields:
   - name: ids
     widget_type: json
-    label: Ids
+    label: Logical point IDs (JSON array)
     required: false
+    help_text: Supply 1–128 logical IDs used when saving raw points. The connector maps these IDs into this connection’s
+      isolated point space.
+    placeholder: '["manual_42_part_1"]'
   - name: filter
     widget_type: json
-    label: Filter
+    label: Qdrant payload filter (JSON)
     required: false
+    help_text: Optional Qdrant filter combined with mandatory connection scope. For deletion, provide either IDs
+      or a nonempty filter. Omit for unrestricted search within this scope.
+    placeholder: '{"must":[{"key":"language","match":{"value":"en"}}]}'
 - operation_id: replace_document
-  title: Replace document
+  title: Replace a document and its embeddings
   fields:
   - name: document_id
     widget_type: textarea
-    label: Document id
+    label: Stable document ID
     required: true
+    help_text: Nonempty identifier, at most 256 UTF-8 bytes, shared by this document’s chunks. Reuse it to replace
+      or delete the same document.
+    placeholder: manual_42
   - name: chunks
     widget_type: json
-    label: Chunks
+    label: Prepared document chunks (JSON array)
     required: true
+    help_text: Map chunks from Split document text into chunks. Supply 1–512 chunks with this document_id, unique
+      chunk_id, chunk_index and text. Each chunk must have a matching vector in the same position.
+    placeholder: '[{"document_id":"manual_42","chunk_id":"manual_42_part_1","chunk_index":0,"text":"Refunds within
+      30 days."}]'
   - name: vectors
     widget_type: json
-    label: Vectors
+    label: Chunk embeddings (JSON matrix)
     required: true
+    help_text: Map ordered vectors from your embedding step, one numeric array per prepared chunk. Count and order
+      must match Chunks and dimensions must match the collection. Example is for a 3-dimensional collection.
+    placeholder: '[[0.1,0.2,0.3]]'
 - operation_id: delete_document
-  title: Delete document
+  title: Delete all chunks of a document
   fields:
   - name: document_id
     widget_type: textarea
-    label: Document id
+    label: Stable document ID
     required: true
+    help_text: Nonempty identifier, at most 256 UTF-8 bytes, shared by this document’s chunks. Reuse it to replace
+      or delete the same document.
+    placeholder: manual_42
 - operation_id: search
-  title: Search
+  title: Search similar text and build context
   fields:
   - name: vector
     widget_type: json
-    label: Vector
+    label: Question embedding (JSON array)
     required: false
+    help_text: Supply a numeric embedding from an earlier step, using the document embedding model and collection
+      dimensions. Use this field or Query embeddings, not question text. Example is 3-dimensional.
+    placeholder: '[0.1,0.2,0.3]'
   - name: query_vectors
     widget_type: json
-    label: Query vectors
+    label: Query embeddings (one-row JSON matrix)
     required: false
+    help_text: 'Alternative to Question embedding: map the vectors output from embedding exactly one question. Must
+      contain exactly one numeric vector matching the collection dimensions.'
+    placeholder: '[[0.1,0.2,0.3]]'
   - name: filter
     widget_type: json
-    label: Filter
+    label: Qdrant payload filter (JSON)
     required: false
+    help_text: Optional Qdrant filter combined with mandatory connection scope. Document metadata is nested under
+      metadata, for example metadata.language; raw-point payload fields use their own paths. Omit to search this
+      scope without an additional filter.
+    placeholder: '{"must":[{"key":"metadata.language","match":{"value":"en"}}]}'
   - name: top_k
     widget_type: integer
-    label: Top k
+    label: Maximum matches
     required: false
+    help_text: Optional integer from 1 to 100; default 5. Increase only when the answer needs more source context.
+    placeholder: '5'
   - name: score_threshold
     widget_type: number
-    label: Score threshold
+    label: Similarity score threshold
     required: false
+    help_text: Optional finite number forwarded to Qdrant. Interpretation depends on the collection metric; it is
+      not a confidence percentage. Leave blank when first evaluating retrieval quality.
   - name: max_context_characters
     widget_type: integer
-    label: Max context characters
+    label: Maximum context characters
     required: false
+    help_text: Optional integer from 1 to 1000000; default 24000. Bounds assembled excerpts for a later answer agent;
+      the host result-size limit still applies.
+    placeholder: '24000'
+- operation_id: ensure_indexes
+  title: Ensure retrieval payload indexes
+  fields: []
