@@ -67,9 +67,26 @@ Example input values:
   "answer": "Refunds are available within 30 days. [S1]",
   "cited_source_ids": [
     "S1"
+  ],
+  "sources": [
+    {
+      "source_id": "S1",
+      "document_id": "manual_42",
+      "chunk_id": "manual_42_part_1",
+      "source_uri": "https://example.com/refund-policy",
+      "title": "Refund policy",
+      "metadata": {
+        "language": "en"
+      },
+      "score": 0.92,
+      "excerpt": "Refunds are available within 30 days.",
+      "text": "Refunds are available within 30 days."
+    }
   ]
 }
 ```
+
+The source above illustrates a matching Search result for this sample answer. In a real workflow, map the complete `sources` output from the same Search step into Sources and map the answer agent’s citation IDs into Cited source IDs. Omitting Sources fails validation; an empty sources array produces an abstention.
 
 ## Create a vector collection
 
