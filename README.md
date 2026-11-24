@@ -1,6 +1,6 @@
 # Qdrant Vector Store
 
-Flow Steward extension `flowsteward.qdrant`, version **1.0.6**.
+Flow Steward extension `flowsteward.qdrant`, version **1.0.7**.
 
 Build document retrieval and cited-answer workflows around a Qdrant collection. Prepare text into overlapping chunks with stable IDs and provenance, replace a document’s stored chunks, delete a document, or work directly with vector points through upsert, get and delete operations. Dense vector search accepts filters and score thresholds and returns matches, source identifiers, exact excerpts and assembled context for downstream steps.
 
@@ -49,7 +49,7 @@ pinned shared GitHub Actions workflow using `.github/release-config.json` to tes
 package both Linux runtime targets, and publish the release assets automatically.
 Manual ZIP uploads are not part of the release process.
 
-After merging the version **1.0.6** update into `main`, create and push its tag:
+After merging the version **1.0.7** update into `main`, create and push its tag:
 
 ```sh
 git switch main
